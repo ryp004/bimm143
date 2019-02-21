@@ -1,0 +1,39 @@
+---
+title: "class14"
+output: github_document
+---
+
+```{r}
+A = read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+table(A$Genotype..forward.strand.)
+
+```
+
+```{r}
+sum(A$Genotype..forward.strand.=="G|G")/nrow(A)
+```
+
+```{r}
+q <- "DDDDCDEDCDDDDBBDDDCC@"
+library(seqinr)
+library(gtools)
+asc(s2c(q)) - 33
+```
+
+```{r}
+Z <- read.table("rs8067378_ENSG00000172057.6.txt")
+table(Z$geno)
+inds.gg <- Z$geno == "G/G"
+inds.ag <- Z$geno == "A/G"
+inds.aa <- Z$geno == "A/A"
+median(Z$exp[inds.ag])
+```
+or
+```{r}
+summary(Z$exp[inds.ag])
+```
+
+```{r}
+boxplot(exp ~ geno, Z)
+```
+
