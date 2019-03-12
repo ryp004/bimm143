@@ -1,0 +1,158 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r}
+counts <- read.csv("data/airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata <-  read.csv("data/airway_metadata.csv", stringsAsFactors = FALSE)
+```
+
+```{r}
+dim(counts)
+head(counts)
+head(metadata)
+```
+
+all function: returns true if everything inside is true:
+```{r}
+all()
+```
+
+
+```{r}
+View(metadata)
+```
+
+```{r}
+control.inds <- metadata$dex == "control"
+head(counts[,control.inds])
+#incorrect, its pulling treated because one of the collumns is off by
+
+#correct way:
+control.ids <- metadata$id[control.inds]
+```
+
+mean counts value
+```{r}
+rowSums(counts[,control.ids])/ ncol(counts[,control.ids])
+```
+
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+control.mean <- rowSums( counts[ ,control$id] )/nrow(control)  
+names(control.mean) <- counts$ensgene
+
+treated <- metadata[metadata[,"dex"]=="treated",]
+treated.mean <- rowSums( counts[ ,treated$id] )/nrow(treated)
+names(treated.mean) <- counts$ensgene
+
+```
+
+data.frame combiens the two lists into a 2d array i guess
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+```
+
+```{r}
+colSums(meancounts)
+```
+
+```{r}
+plot.default(control.mean,treated.mean,log = "xy")
+```
+
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+which function:
+tangential example:
+```{r}
+# setting the C function
+toz <- c(1,2,0,3,0)
+#returns a true false set of booleans if it equals 0 or not
+toz ==0
+#returns where the 0s are
+which(toz ==0)
+
+toz <- meancounts[1:6,]
+toz[,1:2]
+unique(which(toz[,1:2]==0, arr.ind = TRUE)[,1])
+# which with the arr.ind returns values x and y location of the 0
+#unique returns only the unique values
+```
+
+
+counts that are log(0) or /0 will spit out NaN or inf
+so ll 0 counts are filteredout with:
+```{r}
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+ number of up and down regulated genes
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+sum(up.ind)
+sum(down.ind)
+```
+`sum(up.ind)`
+` <- will run it in R
+```{r}
+anno <- read.csv("data/annotables_grch38.csv")
+head(anno)
+```
+merge function:
+```{r}
+mycounts.anno <- merge(x=mycounts, y=anno,by.x = "row.names", by.y = "ensgene")
+head(mycounts.anno)
+```
+
+DSEQ2
+```{r}
+library(DESeq2)
+citation("DESeq2")
+```
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+
+```{r}
+ddz<-DESeq(dds)
+```
+
+```{r}
+res <- results(ddz)
+summary(res)
+```
+
+```{r}
+mycols <- rep("gray", nrow(res))
+mycols[abs(res$log2FoldChange) >2 ] <- "turquoise"
+ind <- (res$padj <0.01) & (abs(res$log2FoldChange)>2)
+mycols[ind] <- "magenta"
+plot(res$log2FoldChange,-log(res$padj),col = mycols,)
+```
+
+
+```{r}
+library(ggplot2)
+res$sig <- res$padj<0.05
+
+ggplot(as.data.frame(res), aes(log2FoldChange, -1*log10(pvalue), col=sig)) + 
+    geom_point() + 
+    ggtitle("Volcano plot")
+```
+
+
+
+

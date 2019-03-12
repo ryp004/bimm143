@@ -1,0 +1,37 @@
+---
+title: "Class11"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# section 1
+```{r}
+stats <- read.csv("Data Export Summary.csv",row.names = 1)
+```
+
+```{r}
+##Q1:From the website what proportion of structures are protein? 
+
+sum(stats$Proteins)/sum(stats$Total)
+
+##Q2:determine how many HIV-1 protease structures are in the current PDB?
+1895
+```
+# section 3
+```{r}
+library(bio3d)
+```
+
+```{r}
+pdb <- read.pdb("1hsg.pdb")
+prot.inds <-(atom.select(pdb,'protein'))
+prot.pdb <- trim.pdb(pdb,prot.inds)
+lig.inds <-(atom.select(pdb, 'ligand'))
+lig.pdb <- trim.pdb(pdb,lig.inds)
+write.pdb(prot.pdb, file = "protein.pdb")
+write.pdb(lig.pdb, file = "ligand.pdb")
+```
+

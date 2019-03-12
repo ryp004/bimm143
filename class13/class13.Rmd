@@ -1,0 +1,45 @@
+---
+title: "class13"
+author: "Ryan Park"
+date: "February 19, 2019"
+output: html_document
+---
+```{r}
+library(bio3d)
+file.name <- get.pdb("1hsg")
+hiv <- read.pdb(file.name)
+```
+
+```{r}
+prot <- trim.pdb(hiv, "protein")
+lig <- trim.pdb(hiv, "ligand")
+```
+
+```{r}
+write.pdb(prot,file="1hsg_protein.pdb")
+write.pdb(lig,file="1hsg_ligand.pdb")
+```
+
+```{r}
+res <- read.pdb("all.pdbqt", multi=TRUE)
+write.pdb(res, "results.pdb")
+```
+
+```{r}
+# res <- read.pdb("all.pdbqt", multi=TRUE)
+ori <- read.pdb("ligand.pdbqt")
+rmsd(ori, res)
+```
+
+```{r}
+#rmsd(atom.select(res,"noh"),atom.select(ori,"noh"))
+```
+
+```{r}
+pdb <- read.pdb("1HEL")
+modes <- nma(pdb)
+plot(modes, sse=pdb)
+# Visualize NMA results
+mktrj(modes, mode=7, file="nma_7.pdb")
+```
+
